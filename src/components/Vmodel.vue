@@ -28,6 +28,7 @@ const bio = ref('')
     <!-- .trim - Ta bort whitespace i början/slutet -->
     <input v-model.trim="bio">
     <p>Bio längd: {{ bio.length }}</p>
+    <p>Namn: {{ name }}</p>
    
   </div>
 </template>

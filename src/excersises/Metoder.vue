@@ -30,6 +30,27 @@ const count = ref(0)
 // - double() - Dubbla värdet
 // - reset() - Nollställ till 0
 
+// Metoder för att manipulera räknaren
+const increment = () => {
+  count.value++ // .value behövs för att komma åt ref-värdet i script
+}
+
+const decrement = () => {
+  count.value--
+}
+
+const addFive = () => {
+  count.value += 5
+}
+
+const double = () => {
+  count.value *= 2
+}
+
+const reset = () => {
+  count.value = 0
+}
+
 </script>
 
 <template>
@@ -38,12 +59,18 @@ const count = ref(0)
     
     <!-- TODO: Visa räknarvärdet -->
     <div class="display">
-      <h2><!-- Visa count här --></h2>
+      <!-- I template behövs inte .value - Vue hanterar det automatiskt -->
+      <h2>{{ count }}</h2>
     </div>
 
     <!-- TODO: Knappar för operationer -->
     <div class="buttons">
-      <!-- Lägg till knappar här -->
+      <!-- @click är Vue's syntax för att lyssna på click-events -->
+      <button @click="increment">+1</button>
+      <button @click="decrement">-1</button>
+      <button @click="addFive">+5</button>
+      <button @click="double">×2</button>
+      <button @click="reset">Nollställ</button>
     </div>
   </div>
 </template>
@@ -55,6 +82,7 @@ const count = ref(0)
   padding: 2rem;
   background: #f0f0f0;
   border-radius: 8px;
+  color: #333; /* Mörk text för ljus bakgrund */
 }
 
 .buttons {

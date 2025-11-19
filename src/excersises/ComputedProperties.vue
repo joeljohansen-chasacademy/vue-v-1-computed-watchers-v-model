@@ -36,6 +36,31 @@ const products = ref([
 // - filteredTotal - Summan av filtrerade produkter
 // - productCount - Antal filtrerade produkter
 
+// computed() skapar en beräknad egenskap som automatiskt uppdateras
+// när dess beroenden (searchQuery, products) ändras
+const filteredProducts = computed(() => {
+  // Filtrera produkter baserat på sökningen (case-insensitive)
+  return products.value.filter(product => 
+    product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// Beräkna totalpris för alla produkter
+const totalPrice = computed(() => {
+  // reduce() summerar alla priser
+  return products.value.reduce((sum, product) => sum + product.price, 0)
+})
+
+// Beräkna totalpris för endast filtrerade produkter
+const filteredTotal = computed(() => {
+  return filteredProducts.value.reduce((sum, product) => sum + product.price, 0)
+})
+
+// Räkna antal filtrerade produkter
+const productCount = computed(() => {
+  return filteredProducts.value.length
+})
+
 </script>
 
 <template>
@@ -44,19 +69,24 @@ const products = ref([
     
     <!-- TODO: Sökfält -->
     <div class="search">
-      <input placeholder="Sök produkt...">
+      <!-- v-model skapar tvåvägsbindning mellan input och searchQuery -->
+      <input v-model="searchQuery" placeholder="Sök produkt...">
     </div>
 
     <!-- TODO: Statistik -->
     <div class="stats">
-      <p>Visar <!-- antal --> av {{ products.length }} produkter</p>
-      <p>Totalt alla produkter: <!-- totalPrice --> kr</p>
-      <p>Totalt filtrerade: <!-- filteredTotal --> kr</p>
+      <p>Visar {{ productCount }} av {{ products.length }} produkter</p>
+      <p>Totalt alla produkter: {{ totalPrice }} kr</p>
+      <p>Totalt filtrerade: {{ filteredTotal }} kr</p>
     </div>
 
     <!-- TODO: Produktlista -->
     <ul class="product-list">
-      <!-- Loopa igenom filteredProducts här -->
+      <!-- v-for loopar igenom en array, :key behövs för Vue's rendering -->
+      <li v-for="product in filteredProducts" :key="product.id">
+        <span>{{ product.name }}</span>
+        <span class="price">{{ product.price }} kr</span>
+      </li>
     </ul>
   </div>
 </template>
@@ -72,6 +102,8 @@ input {
   font-size: 1rem;
   border: 2px solid #ddd;
   border-radius: 4px;
+  background: white;
+  color: #333;
 }
 
 .stats {
@@ -79,6 +111,7 @@ input {
   padding: 1rem;
   border-radius: 4px;
   margin: 1rem 0;
+  color: #333; /* Mörk text för ljus bakgrund */
 }
 
 .product-list {
@@ -93,6 +126,8 @@ input {
   border: 1px solid #ddd;
   border-radius: 4px;
   margin-bottom: 0.5rem;
+  background: white;
+  color: #333;
 }
 
 .price {

@@ -24,6 +24,12 @@ const saveStatus = ref('')
 const charCount = ref(0)
 
 // TODO: Ladda sparad anteckning från localStorage när komponenten laddas
+// Koden här körs när komponenten laddas (top-level i setup)
+const savedNote = localStorage.getItem('note')
+if (savedNote) {
+  note.value = savedNote
+  charCount.value = savedNote.length
+}
 
 // TODO: Watch för att spara till localStorage
 // Tips: 
@@ -32,24 +38,43 @@ const charCount = ref(0)
 // - Uppdatera saveStatus till "Sparat!" 
 // - Uppdatera charCount
 
+// watch() lyssnar på ändringar och kör en funktion när värdet ändras
+watch(note, (newValue) => {
+  // Spara till localStorage
+  localStorage.setItem('note', newValue)
+  
+  // Uppdatera antal tecken
+  charCount.value = newValue.length
+  
+  // Visa sparmeddelande
+  saveStatus.value = 'Sparat!'
+  
+  // Dölj meddelandet efter 2 sekunder
+  setTimeout(() => {
+    saveStatus.value = ''
+  }, 2000)
+})
+
 // TODO: Watch för att dölja "Sparat!" efter 2 sekunder
 // Tips: Använd setTimeout
+// (Detta hanteras nu i samma watch ovan med setTimeout)
 
 </script>
 
 <template>
   <div>
-    <h1>📝 Mina Anteckningar</h1>
+    <h1>Min Anteckning</h1>
     
     <!-- TODO: Textarea för anteckning -->
     <textarea 
+      v-model="note"
       placeholder="Skriv dina anteckningar här..."
       rows="10"
     ></textarea>
 
     <!-- TODO: Visa statistik -->
     <div class="info">
-      <p>Antal tecken: <!-- charCount --></p>
+      <p>Antal tecken: {{ charCount }}</p>
       <p class="status">{{ saveStatus }}</p>
     </div>
   </div>
@@ -64,6 +89,8 @@ textarea {
   border: 2px solid #ddd;
   border-radius: 4px;
   resize: vertical;
+  background: white;
+  color: #333;
 }
 
 .info {

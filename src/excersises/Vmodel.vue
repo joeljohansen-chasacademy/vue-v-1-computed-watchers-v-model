@@ -28,6 +28,15 @@ const favoriteColor = ref('')
 // TODO: Lägg till en metod för att hantera formuläret
 // const submitForm = () => { ... }
 
+const submitForm = () => {
+  // Här kan man göra något med formulärdata, t.ex. skicka till server
+  console.log('Profil skapad:', {
+    name: name.value,
+    bio: bio.value,
+    favoriteColor: favoriteColor.value
+  })
+}
+
 </script>
 
 <template>
@@ -39,18 +48,19 @@ const favoriteColor = ref('')
       <!-- TODO: Namn (text input med .trim) -->
       <div class="form-group">
         <label>Namn:</label>
-        <input type="text" placeholder="Ditt namn">
+        <!-- .trim tar automatiskt bort whitespace från början och slutet -->
+        <input v-model.trim="name" type="text" placeholder="Ditt namn">
       </div>
 
       <!-- TODO: Bio (textarea med .trim) -->
       <div class="form-group">
         <label>Bio:</label>
-        <textarea placeholder="Berätta om dig själv..." rows="4"></textarea>
+        <textarea v-model.trim="bio" placeholder="Berätta om dig själv..." rows="4"></textarea>
       </div>
       <!-- TODO: Favoritfärg (select) -->
       <div class="form-group">
         <label>Favoritfärg:</label>
-        <select>
+        <select v-model="favoriteColor">
           <option value="">Välj färg...</option>
           <option value="red">Röd</option>
           <option value="blue">Blå</option>
@@ -62,13 +72,15 @@ const favoriteColor = ref('')
       <!-- TODO: Godkänn villkor (checkbox) -->
       <div class="form-group">
         <label>
-          <input type="checkbox">
+          <!-- v-model med checkbox ger true/false -->
+          <input v-model="acceptTerms" type="checkbox">
           Jag godkänner villkoren
         </label>
       </div>
 
       <!-- TODO: Submit-knapp (disabled om villkor ej godkända) -->
-      <button type="submit">Skapa profil</button>
+      <!-- :disabled binder disabled-attributet till ett boolean-värde -->
+      <button type="submit" :disabled="!acceptTerms">Skapa profil</button>
     </form>
 
     <!-- TODO: Visa sammanfattning -->
@@ -99,6 +111,8 @@ select {
   padding: 0.5rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+  background: white;
+  color: #333;
 }
 
 .radio-group {
@@ -130,5 +144,6 @@ button:hover:not(:disabled) {
   padding: 1rem;
   background: #f8f9fa;
   border-radius: 4px;
+  color: #333;
 }
 </style>

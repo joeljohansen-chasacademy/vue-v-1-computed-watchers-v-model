@@ -48,6 +48,11 @@ const saveStatus = ref('')
 
 // TODO: Ladda sparad varukorg från localStorage när komponenten laddas
 // Tips: localStorage.getItem('cart') returnerar en sträng som behöver JSON.parse()
+const savedCart = localStorage.getItem('cart')
+if (savedCart) {
+  // JSON.parse() konverterar JSON-sträng tillbaka till JavaScript-objekt
+  cart.value = JSON.parse(savedCart)
+}
 
 // TODO: Skapa metoder
 // addProduct() - Lägg till produkt i cart
@@ -56,12 +61,39 @@ const saveStatus = ref('')
 // - Lägg till objekt med id, name och price
 // - Rensa formulärfälten efteråt
 
+const addProduct = () => {
+  // Validera att båda fälten är ifyllda
+  if (!productName.value || !productPrice.value) {
+    return
+  }
+  
+  // Lägg till produkt med unikt id (timestamp)
+  cart.value.push({
+    id: Date.now(),
+    name: productName.value,
+    price: parseFloat(productPrice.value) // Konvertera till nummer
+  })
+  
+  // Rensa formulärfälten
+  productName.value = ''
+  productPrice.value = ''
+}
+
 // removeProduct(id) - Ta bort produkt från cart
 // Tips: Använd filter() för att ta bort produkten med rätt id
+
+const removeProduct = (id) => {
+  // filter() skapar en ny array utan produkten med matchande id
+  cart.value = cart.value.filter(product => product.id !== id)
+}
 
 // TODO: Skapa computed properties
 // totalPrice - Summan av alla produktpriser i cart
 // Tips: Använd reduce() för att summera
+
+const totalPrice = computed(() => {
+  return cart.value.reduce((sum, product) => sum + product.price, 0)
+})
 
 // discountPercent - Returnera rätt procentsats baserat på discountCode
 // Tips: 
@@ -70,17 +102,43 @@ const saveStatus = ref('')
 // - "STUDENT" = 10
 // - Annat = 0
 
+const discountPercent = computed(() => {
+  // Jämför rabattkoden (konverterad till uppercase för att matcha)
+  const code = discountCode.value.toUpperCase()
+  if (code === 'SOMMER2024') return 15
+  if (code === 'VIP') return 20
+  if (code === 'STUDENT') return 10
+  return 0
+})
+
 // discountAmount - Beräkna rabattbeloppet
 // Tips: totalPrice * (discountPercent / 100)
+
+const discountAmount = computed(() => {
+  return totalPrice.value * (discountPercent.value / 100)
+})
 
 // finalPrice - Slutpris efter rabatt
 // Tips: totalPrice - discountAmount
 
+const finalPrice = computed(() => {
+  return totalPrice.value - discountAmount.value
+})
+
 // averagePrice - Genomsnittspris per produkt
 // Tips: totalPrice / antal produkter (hantera division med 0)
 
+const averagePrice = computed(() => {
+  if (cart.value.length === 0) return 0
+  return totalPrice.value / cart.value.length
+})
+
 // productCount - Antal produkter i varukorgen
 // Tips: cart.value.length
+
+const productCount = computed(() => {
+  return cart.value.length
+})
 
 // TODO: Watch för att spara varukorgen
 // Tips:
@@ -88,6 +146,20 @@ const saveStatus = ref('')
 // - Spara till localStorage med localStorage.setItem('cart', JSON.stringify(cart.value))
 // - Uppdatera saveStatus till "Varukorgen sparad!"
 // - Använd setTimeout för att dölja meddelandet efter 2 sekunder
+
+// { deep: true } behövs för att Vue ska detektera ändringar inuti array/objekt
+watch(cart, (newCart) => {
+  // JSON.stringify() konverterar objekt till JSON-sträng för lagring
+  localStorage.setItem('cart', JSON.stringify(newCart))
+  
+  // Visa sparmeddelande
+  saveStatus.value = 'Varukorgen sparad!'
+  
+  // Dölj meddelandet efter 2 sekunder
+  setTimeout(() => {
+    saveStatus.value = ''
+  }, 2000)
+}, { deep: true })
 
 </script>
 
@@ -100,14 +172,17 @@ const saveStatus = ref('')
       <h2>Lägg till produkt</h2>
       <div class="form-row">
         <input 
+          v-model="productName"
           type="text" 
           placeholder="Produktnamn"
         >
         <input 
+          v-model="productPrice"
           type="number" 
           placeholder="Pris"
         >
-        <button>Lägg till</button>
+        <!-- @click.prevent förhindrar formulärets standard-beteende -->
+        <button @click="addProduct">Lägg till</button>
       </div>
     </div>
 
@@ -115,6 +190,7 @@ const saveStatus = ref('')
     <div class="discount-section">
       <h3>Rabattkod</h3>
       <input 
+        v-model="discountCode"
         type="text" 
         placeholder="Ange rabattkod..."
       >
@@ -126,7 +202,7 @@ const saveStatus = ref('')
 
     <!-- TODO: Varukorg -->
     <div class="cart">
-      <h2>Varukorg (<!-- visa antal produkter -->)</h2>
+      <h2>Varukorg ({{ productCount }})</h2>
       
       <!-- Visa meddelande om varukorgen är tom -->
       <p v-if="cart.length === 0" class="empty-cart">
@@ -135,31 +211,41 @@ const saveStatus = ref('')
 
       <!-- TODO: Lista produkter -->
       <ul v-else class="cart-items">
-        <!-- Loopa igenom cart här -->
-        <!-- Visa produktnamn, pris och ta bort-knapp -->
+        <!-- v-for loopar igenom varukorgen -->
+        <li v-for="product in cart" :key="product.id">
+          <div>
+            <strong>{{ product.name }}</strong>
+            <span> - {{ product.price }} kr</span>
+          </div>
+          <!-- @click kör removeProduct med produktens id -->
+          <button @click="removeProduct(product.id)" class="remove-btn">
+            Ta bort
+          </button>
+        </li>
       </ul>
 
       <!-- TODO: Sammanfattning -->
       <div v-if="cart.length > 0" class="summary">
         <div class="summary-row">
           <span>Antal produkter:</span>
-          <span><!-- productCount --></span>
+          <span>{{ productCount }}</span>
         </div>
         <div class="summary-row">
           <span>Genomsnittspris:</span>
-          <span><!-- averagePrice --> kr</span>
+          <!-- toFixed(2) formaterar till 2 decimaler -->
+          <span>{{ averagePrice.toFixed(2) }} kr</span>
         </div>
         <div class="summary-row">
           <span>Totalt:</span>
-          <span><!-- totalPrice --> kr</span>
+          <span>{{ totalPrice.toFixed(2) }} kr</span>
         </div>
         <div v-if="discountAmount > 0" class="summary-row discount">
           <span>Rabatt ({{ discountPercent }}%):</span>
-          <span>-<!-- discountAmount --> kr</span>
+          <span>-{{ discountAmount.toFixed(2) }} kr</span>
         </div>
         <div class="summary-row total">
           <span><strong>Att betala:</strong></span>
-          <span><strong><!-- finalPrice --> kr</strong></span>
+          <span><strong>{{ finalPrice.toFixed(2) }} kr</strong></span>
         </div>
       </div>
     </div>
@@ -177,6 +263,7 @@ const saveStatus = ref('')
   padding: 1.5rem;
   border-radius: 8px;
   margin-bottom: 2rem;
+  color: #333; /* Mörk text för ljus bakgrund */
 }
 
 .add-product h2 {
@@ -194,6 +281,8 @@ const saveStatus = ref('')
   border: 2px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
+  background: white;
+  color: #333;
 }
 
 .form-row button {
@@ -215,6 +304,7 @@ const saveStatus = ref('')
   padding: 1rem;
   border-radius: 4px;
   margin-bottom: 2rem;
+  color: #333; /* Mörk text för ljus bakgrund */
 }
 
 .discount-section h3 {
@@ -228,6 +318,9 @@ const saveStatus = ref('')
   border-radius: 4px;
   font-size: 1rem;
   text-transform: uppercase;
+  background: white;
+  color: #333;
+  box-sizing: border-box; /* Inkluderar padding och border i width */
 }
 
 .discount-active {
@@ -241,6 +334,7 @@ const saveStatus = ref('')
   padding: 1.5rem;
   border: 2px solid #ddd;
   border-radius: 8px;
+  color: #333; /* Mörk text för ljus bakgrund */
 }
 
 .cart h2 {

@@ -10,6 +10,7 @@ const cart = ref([])
 // Enkel watcher - nytt värde som parameter
 watch(searchQuery, (newValue) => {
   console.log('Sökning ändrades till:', newValue)
+  cart.value.push({name:newValue, price:100});
   // Här skulle vi kunna göra API-anrop
 })
 
@@ -21,6 +22,7 @@ watch(username, (newValue, oldValue) => {
 // Watcher med options
 watch(cart, (newCart) => {
   // Spara till localStorage när cart ändras
+  console.log(`Cart är uppdaterad, ${JSON.stringify(newCart)}`)
   localStorage.setItem('cart', JSON.stringify(newCart))
 }, { deep: true }) // deep: true för att watcha nested properties
 
